@@ -164,8 +164,11 @@ def lsmt_fit(train, config):  # fit a Recurrent NN model
     if n_diff > 0:
         train = difference(train, n_diff)
     data = series_to_supervised(train, n_input)
+    # separate inputs and outputs
     train_x, train_y = data[:, :-1], data[:, -1]
-    train_x = train_x.reshape((train_x.shape[0], train_x.shape[1], 1))
+    # reshape input data into [samples, timesteps, features]
+    n_features = 1
+    train_x = train_x.reshape((train_x.shape[0], train_x.shape[1], n_features))
     # define model
     model = Sequential()
     model.add(LSTM(n_nodes, activation='relu', input_shape=(n_input, 1)))
@@ -425,8 +428,28 @@ def cnn_configs():  # create a list of CNN configs to try
     return configs
 
 
+def lsmt_configs():  # create a list of lsmt configs to try
+    # define scope of configs
+    n_input = [12]
+    n_nodes = [100]
+    n_epochs = [50]
+    n_batch = [1, 150]
+    n_diff = [12]
+    # create configs
+    configs = list()
+    for i in n_input:
+        for j in n_nodes:
+            for k in n_epochs:
+                for l in n_batch:
+                    for m in n_diff:
+                        cfg = [i, j, k, l, m]
+                        configs.append(cfg)
+    print('Total configs: %d' % len(configs))
+    return configs
+
+
 # grid search a model, return None on failure
-def grid_search_repeat_evaluate(data, config, n_test, model_type, measure_type, n_repeats=30):
+def grid_search_repeat_evaluate(data, config, n_test, model_type, measure_type, n_repeats=10):
     # convert config to a key
     key = str(config)
     # fit and evaluate the model n times
